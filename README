@@ -1,0 +1,6 @@
+Cocke-Younger-Kasami algorithm implementation
+
+Brian Heim 2018-10-27
+
+Grammar is first converted to Chomsky Normal Form (CNF) if possible, then the CYK algorithm used to
+check an input string for acceptance.
