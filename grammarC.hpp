@@ -14,37 +14,12 @@
 #include <utility>
 #include <type_traits>
 
-namespace grammarC {
+namespace CXGram {
 
 template<typename... Ts> struct Return {};
 
-template<int...I> using ISeq     = std::integer_sequence<int,I...>;
-template<int N>   using MakeISeq = std::make_integer_sequence<int,N>;
-
-#define DEF_SYMBOL( _n_, _is_term_ ) \
-    struct Sym_##_n_ { \
-        static constexpr const char * Name = #_n_ "_"; \
-        static constexpr bool IsTerminal = _is_term_; \
-    }
-
-#define DEF_TERM( _n_ ) DEF_SYMBOL( _n_, true )
-#define DEF_NONTERM( _n_ ) DEF_SYMBOL( _n_, false )
-
-DEF_NONTERM(A);
-DEF_NONTERM(B);
-DEF_NONTERM(C);
-DEF_NONTERM(D);
-DEF_NONTERM(E);
-
-DEF_TERM(a);
-DEF_TERM(b);
-DEF_TERM(c);
-DEF_TERM(d);
-DEF_TERM(e);
-
-#undef DEF_SYMBOL
-#undef DEF_TERM
-#undef DEF_NONTERM
+template<size_t... I> using ISeq = std::index_sequence<I...>;
+template<size_t N> using MakeISeq = std::make_index_sequence<N>;
 
 // Utility functions
 constexpr unsigned int Strlen( const char * s ) {
@@ -66,7 +41,7 @@ template<typename... Ts> struct List {
     constexpr static auto Size = sizeof...(Ts);
 };
 
-template<typename... Ts> struct ListCat;
+template<typename...> struct ListCat;
 template<typename... Ls, typename ... Rs>
 struct ListCat<List<Ls...>, List<Rs...>> {
     using Result = List<Ls..., Rs...>;
@@ -93,7 +68,7 @@ struct Rule {
 };
 
 // Simple templates - checks if list needs to be expanded
-template<typename ... Rs> struct IsAllTerminal;
+template<typename> struct IsAllTerminal;
 template<typename ... Rs>
 struct IsAllTerminal<List<Rs...>> {
     static constexpr bool Result = (Rs::IsTerminal && ...);
@@ -126,7 +101,7 @@ struct ExpandOne<I, S, Rs, true> {
 };
 
 // Expand an entire list once.
-template<size_t, typename...Ts> struct ExpandOnce;
+template<size_t, typename, typename, typename> struct ExpandOnce;
 
 // Base case - nothing left to expand
 template<size_t InI, typename ExpList, typename RList>
@@ -152,16 +127,14 @@ template<size_t, typename, typename, bool> struct ExpandImpl;
 
 // Base case - done expanding
 template<size_t InI, typename ExpList, typename RList>
-struct ExpandImpl<InI, ExpList, RList, true> {
-    using Result = ExpList;
-};
+struct ExpandImpl<InI, ExpList, RList, true> { using Result = ExpList; };
 
 template<size_t InI, typename ... Ss, typename RList>
 struct ExpandImpl<InI, List<Ss...>, RList, false> {
     using Expanded = ExpandOnce<InI, List<>, List<Ss...>, RList>;
     using PrevResult = typename Expanded::Result;
     constexpr static auto I = Expanded::I;
-    using Result = typename ExpandImpl<I, PrevResult, RList, IsAllTerminal<PrevResult>::Result || (sizeof...(Ss) > 80)>::Result;
+    using Result = typename ExpandImpl<I, PrevResult, RList, IsAllTerminal<PrevResult>::Result || (sizeof...(Ss) > 100)>::Result;
 };
 
 // Helper template for Expanding
@@ -171,14 +144,14 @@ struct Expand {
 };
 
 // Helpers for Concat
-template<const char * Str, typename ... Ss> struct ConcatImpl;
-template<const char * Str, int... LhsI, int... RhsI, typename Sym, typename ... Syms>
+template<const char *, typename ...> struct ConcatImpl;
+template<const char * Str, size_t... LhsI, size_t... RhsI, typename Sym, typename ... Syms>
 struct ConcatImpl<Str, ISeq<LhsI...>, ISeq<RhsI...>, Sym, Syms...> {
     constexpr static size_t Size = sizeof...(LhsI) + sizeof...(RhsI);
-    constexpr static const char String[Size] = {Str[LhsI]..., Sym::Name[RhsI]... };
+    constexpr static const char String[Size + 1] = {Str[LhsI]..., Sym::Name[RhsI]..., '\0' };
 };
 
-template<const char * Str, int... LhsI, int... RhsI, typename Sym, typename Sym2, typename ... Syms>
+template<const char * Str, size_t... LhsI, size_t... RhsI, typename Sym, typename Sym2, typename ... Syms>
 struct ConcatImpl<Str, ISeq<LhsI...>, ISeq<RhsI...>, Sym, Sym2, Syms...> {
     constexpr static size_t Size = sizeof...(LhsI) + sizeof...(RhsI);
     constexpr static const char Partial[Size] = {Str[LhsI]..., Sym::Name[RhsI]... };
@@ -187,7 +160,7 @@ struct ConcatImpl<Str, ISeq<LhsI...>, ISeq<RhsI...>, Sym, Sym2, Syms...> {
 };
 
 // Strings together all the names of the symbols in Ss into a single const char array
-template<typename ... Ss> struct Concat;
+template<typename> struct Concat;
 template<typename S, typename ... Ss>
 struct Concat<List<S, Ss...>> {
     constexpr static const char Dummy[1] = { '0' };
@@ -203,43 +176,11 @@ struct ProduceImpl
 };
 
 template<typename S, typename ... R>
-struct grammar {
-    constexpr grammar() {}
-
-    template<unsigned int I>
-    constexpr const char * produce() const
-    {
+struct Grammar {
+    template<int I>
+    constexpr const char * produce() const {
         return ProduceImpl<I, S, R...>::String;
     }
-
 };
 
-using A = Sym_A;
-using B = Sym_B;
-using C = Sym_C;
-using D = Sym_D;
-using E = Sym_E;
-
-using a = Sym_a;
-using b = Sym_b;
-using c = Sym_c;
-using d = Sym_d;
-using e = Sym_e;
-
-constexpr grammar<
-    A,
-    Rule<A, A, A>,
-    Rule<A, A, B, C, D, E>,
-    Rule<A, C, D, E>,
-    Rule<A, D, E>,
-    Rule<B, b>,
-    Rule<B, B, E, C>,
-    Rule<C, c>,
-    Rule<C, c, d, c, d, c>,
-    Rule<C, D, E>,
-    Rule<D, d>,
-    Rule<D, B, E>,
-    Rule<E, e>
-> gramC{};
-
-} // namespace grammarC
+} // namespace CXGram
