@@ -168,18 +168,18 @@ struct Concat<List<S, Ss...>> {
         (const char*)Dummy, MakeISeq<0>, MakeISeq<Strlen(S::Name)>, S, Ss...>::String;
 };
 
-template<unsigned int I, typename S, typename... R>
+template<unsigned int I, typename S, typename... Rs>
 struct ProduceImpl
 {
-    using Result = typename Expand<I, S, List<R...>>::Result;
+    using Result = typename Expand<I, S, List<Rs...>>::Result;
     constexpr static const char * String = Concat<Result>::String;
 };
 
-template<typename S, typename ... R>
+template<typename S, typename ... Rs>
 struct Grammar {
     template<int I>
     constexpr const char * produce() const {
-        return ProduceImpl<I, S, R...>::String;
+        return ProduceImpl<I, S, Rs...>::String;
     }
 };
 
