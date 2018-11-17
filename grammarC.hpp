@@ -181,6 +181,9 @@ struct Grammar {
     constexpr const char * produce() const {
         return ProduceImpl<I, S, Rs...>::String;
     }
+
+    template<unsigned int I>
+    static constexpr const char * Production = ProduceImpl<I, S, Rs...>::String;
 };
 
 } // namespace CXGram
