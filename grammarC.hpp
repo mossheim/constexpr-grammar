@@ -60,12 +60,36 @@ struct Select<I, List<Head, Tail...>> { using Result = typename Select<I - 1, Li
 template<typename Head, typename... Tail>
 struct Select<0, List<Head, Tail...>> { using Result = Head; };
 
-// Simple templates - rule type
-template<typename L, typename... Rs>
-struct Rule {
+// Utility templates - WSelect, weighted select
+// We do need a base case because std::conditional_t will eventually recurse here
+template<size_t, typename> struct WSelect { using Result = void; };
+
+template<size_t I, typename Head, typename... Tail>
+struct WSelect<I, List<Head, Tail...>> {
+    using Result = std::conditional_t<I < Head::Weight,
+                                      Head,
+                                      typename WSelect<I - Head::Weight, List<Tail...>>::Result>;
+};
+
+// Utility templates - WeightSum, sum of rule weights
+template<typename> struct WeightSum;
+
+template<typename ... Rs>
+struct WeightSum<List<Rs...>> {
+    constexpr static auto Result = (0 + ... + Rs::Weight);
+};
+
+// Simple templates - weighted rule type
+template<size_t W, typename L, typename... Rs>
+struct WRule {
     using Lhs = L;
     using Rhs = List<Rs...>;
+    constexpr static auto Weight = W;
 };
+
+// Simple templates - normal rules are just 1-weighted rules
+template<typename L, typename... Rs>
+using Rule = WRule<1, L, Rs...>;
 
 // Simple templates - checks if list needs to be expanded
 template<typename> struct IsAllTerminal;
@@ -90,7 +114,8 @@ template<size_t, typename, typename, bool> struct ExpandOne;
 template<size_t I, typename S, typename RList>
 struct ExpandOne<I, S, RList, false> {
     using Matches = typename MatchingRules<S, RList>::Result;
-    using Result = typename Select<I % Matches::Size, Matches>::Result::Rhs;
+    constexpr static auto Sum = WeightSum<Matches>::Result;
+    using Result = typename WSelect<I % Sum, Matches>::Result::Rhs;
     constexpr static auto NextI = CalcNextI(I);
 };
 
