@@ -188,7 +188,7 @@ struct ConcatImpl<Str, ISeq<LhsI...>, ISeq<RhsI...>, Sym, Sym2, Syms...> {
 template<typename> struct Concat;
 template<typename S, typename ... Ss>
 struct Concat<List<S, Ss...>> {
-    constexpr static const char Dummy[1] = { '0' };
+    constexpr static const char Dummy[1] = { '\0' };
     constexpr static const char * String = ConcatImpl<
         (const char*)Dummy, MakeISeq<0>, MakeISeq<Strlen(S::Name)>, S, Ss...>::String;
 };

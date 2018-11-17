@@ -140,7 +140,7 @@ struct print {
     template<typename G>
     void operator()(G const & grammar) {
         print<I - 1>{}(grammar);
-        std::cout << I << ": " << grammar.template produce<I>() << '\n';
+        std::cout << I << ": " << G::template Production<I> << '\n';
     }
 };
 
@@ -155,8 +155,8 @@ checker<toy.produce<0>()[0]> c;
 
 int main() {
     std::cout << "toy:\n";
-    print<4>{}(toy);
+    // print<10>{}(toy);
 
     std::cout << "math:\n";
-    print<4>{}(math);
+    print<15>{}(weighted_math);
 }
