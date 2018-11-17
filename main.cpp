@@ -6,6 +6,7 @@
 
 using CXGram::Grammar;
 using CXGram::Rule;
+using CXGram::WRule;
 
 #define DEFINE_SYMBOL( _n_, _is_term_, _text_ ) \
     struct _n_ { \
@@ -104,6 +105,35 @@ constexpr Grammar<
     Rule<Digit, n8>,
     Rule<Digit, n9>
 > math{};
+
+constexpr Grammar<
+    Expr,
+
+    WRule<6, Expr, Term>,
+    WRule<2, Expr, Expr, Plus, Term>,
+    WRule<2, Expr, Expr, Minus, Term>,
+
+    WRule<6, Term, Factor>,
+    WRule<2, Term, Term, Times, Factor>,
+    WRule<2, Term, Term, Div, Factor>,
+
+    WRule<8, Factor, Digits>,
+    WRule<2, Factor, LParen, Expr, RParen>,
+
+    WRule<4, Digits, Digit>,
+    WRule<6, Digits, Digits, Digit>,
+
+    WRule<0, Digit, n0>,
+    WRule<0, Digit, n1>,
+    WRule<1, Digit, n2>,
+    WRule<1, Digit, n3>,
+    WRule<1, Digit, n4>,
+    WRule<0, Digit, n5>,
+    WRule<1, Digit, n6>,
+    WRule<0, Digit, n7>,
+    WRule<1, Digit, n8>,
+    WRule<1, Digit, n9>
+> weighted_math{};
 
 template<int I>
 struct print {
