@@ -1,5 +1,4 @@
-// #include "grammar2.hpp"
-#include "grammarC.hpp"
+#include "Grammar.hpp"
 
 #include <iostream>
 #include <cstdlib>
