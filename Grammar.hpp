@@ -1,13 +1,6 @@
 // Grammar type - take 3 (constexpr)
 // Brian Heim 2018-10-27
 
-#include <vector>
-#include <iostream>
-#include <cstdlib>
-#include <unordered_map>
-#include <algorithm>
-#include <array>
-
 #include <cstdint>
 #include <cstddef>
 
