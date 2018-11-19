@@ -101,11 +101,11 @@ struct MatchingRules<S, List<R, Rs...>> {
 };
 
 // Expand a single non-terminal, or don't if it's a terminal
-template<size_t, typename, typename, bool> struct ExpandOne;
+template<size_t, typename, typename, bool> struct ExpandSymbol;
 
 // I = RNG value, S = symbol to expand, RList = list of rules
 template<size_t I, typename S, typename RList>
-struct ExpandOne<I, S, RList, false> {
+struct ExpandSymbol<I, S, RList, false> {
     using Matches = typename MatchingRules<S, RList>::Result;
     constexpr static auto Sum = WeightSum<Matches>::Result;
     using Result = typename WSelect<I % Sum, Matches>::Result::Rhs;
@@ -113,29 +113,29 @@ struct ExpandOne<I, S, RList, false> {
 };
 
 template<size_t I, typename S, typename Rs>
-struct ExpandOne<I, S, Rs, true> {
+struct ExpandSymbol<I, S, Rs, true> {
     using Result = List<S>;
     constexpr static auto NextI = I;
 };
 
 // Expand an entire list once.
-template<size_t, typename, typename, typename> struct ExpandOnce;
+template<size_t, typename, typename, typename> struct ExpandOneSent;
 
 // Base case - nothing left to expand
 template<size_t InI, typename ExpList, typename RList>
-struct ExpandOnce<InI, ExpList, List<>, RList> {
+struct ExpandOneSent<InI, ExpList, List<>, RList> {
     constexpr static auto I = InI;
     using Result = ExpList;
 };
 
 // Expand Next and place its expansion in List<Prev..., _>
 template<size_t InI, typename... Prev, typename Next, typename ...Tail, typename RList>
-struct ExpandOnce<InI, List<Prev...>, List<Next, Tail...>, RList>
+struct ExpandOneSent<InI, List<Prev...>, List<Next, Tail...>, RList>
 {
-    using ExpandedNext = ExpandOne<InI, Next, RList, Next::IsTerminal>;
+    using ExpandedNext = ExpandSymbol<InI, Next, RList, Next::IsTerminal>;
     constexpr static auto NextI = ExpandedNext::NextI;
     using NewHead = typename ListCat<List<Prev...>, typename ExpandedNext::Result>::Result;
-    using ExpandedTail = ExpandOnce<NextI, NewHead, List<Tail...>, RList>;
+    using ExpandedTail = ExpandOneSent<NextI, NewHead, List<Tail...>, RList>;
     using Result = typename ExpandedTail::Result;
     constexpr static auto I = ExpandedTail::I;
 };
@@ -149,7 +149,7 @@ struct ExpandImpl<InI, ExpList, RList, true> { using Result = ExpList; };
 
 template<size_t InI, typename ... Ss, typename RList>
 struct ExpandImpl<InI, List<Ss...>, RList, false> {
-    using Expanded = ExpandOnce<InI, List<>, List<Ss...>, RList>;
+    using Expanded = ExpandOneSent<InI, List<>, List<Ss...>, RList>;
     using PrevResult = typename Expanded::Result;
     constexpr static auto I = Expanded::I;
     using Result = typename ExpandImpl<I, PrevResult, RList, IsAllTerminal<PrevResult>::Result || (sizeof...(Ss) > 100)>::Result;
