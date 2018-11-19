@@ -163,8 +163,8 @@ struct Expand {
 
 // Helpers for Concat
 template<const char *, typename ...> struct ConcatImpl;
-template<const char * Str, size_t... LhsI, size_t... RhsI, typename Sym, typename ... Syms>
-struct ConcatImpl<Str, ISeq<LhsI...>, ISeq<RhsI...>, Sym, Syms...> {
+template<const char * Str, size_t... LhsI, size_t... RhsI, typename Sym>
+struct ConcatImpl<Str, ISeq<LhsI...>, ISeq<RhsI...>, Sym> {
     constexpr static size_t Size = sizeof...(LhsI) + sizeof...(RhsI);
     constexpr static const char String[Size + 1] = {Str[LhsI]..., Sym::Name[RhsI]..., '\0' };
 };
