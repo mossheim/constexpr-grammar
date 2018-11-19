@@ -15,8 +15,8 @@ template<size_t... I> using ISeq = std::index_sequence<I...>;
 template<size_t N> using MakeISeq = std::make_index_sequence<N>;
 
 // Utility functions
-constexpr unsigned int Strlen( const char * s ) {
-    unsigned int i = 0;
+constexpr size_t Strlen( const char * s ) {
+    size_t i = 0;
     while ( *s++ )
         ++i;
     return i;
@@ -156,7 +156,7 @@ struct ExpandImpl<InI, List<Ss...>, RList, false> {
 };
 
 // Helper template for Expanding
-template<unsigned int I, typename S, typename RList>
+template<size_t I, typename S, typename RList>
 struct Expand {
     using Result = typename ExpandImpl<I, List<S>, RList, S::IsTerminal>::Result;
 };
@@ -186,7 +186,7 @@ struct Concat<List<S, Ss...>> {
         (const char*)Dummy, MakeISeq<0>, MakeISeq<Strlen(S::Name)>, S, Ss...>::String;
 };
 
-template<unsigned int I, typename S, typename... Rs>
+template<size_t I, typename S, typename... Rs>
 struct ProduceImpl
 {
     using Result = typename Expand<I, S, List<Rs...>>::Result;
@@ -195,12 +195,12 @@ struct ProduceImpl
 
 template<typename S, typename ... Rs>
 struct Grammar {
-    template<int I>
+    template<size_t I>
     constexpr const char * produce() const {
         return ProduceImpl<I, S, Rs...>::String;
     }
 
-    template<unsigned int I>
+    template<size_t I>
     static constexpr const char * Production = ProduceImpl<I, S, Rs...>::String;
 };
 
