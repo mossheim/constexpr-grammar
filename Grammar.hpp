@@ -165,15 +165,15 @@ struct Expand {
 template<const char *, typename ...> struct ConcatImpl;
 template<const char * Str, size_t... LhsI, size_t... RhsI, typename Sym>
 struct ConcatImpl<Str, ISeq<LhsI...>, ISeq<RhsI...>, Sym> {
-    constexpr static size_t Size = sizeof...(LhsI) + sizeof...(RhsI);
+    constexpr static auto Size = sizeof...(LhsI) + sizeof...(RhsI);
     constexpr static const char String[Size + 1] = {Str[LhsI]..., Sym::Name[RhsI]..., '\0' };
 };
 
 template<const char * Str, size_t... LhsI, size_t... RhsI, typename Sym, typename Sym2, typename ... Syms>
 struct ConcatImpl<Str, ISeq<LhsI...>, ISeq<RhsI...>, Sym, Sym2, Syms...> {
-    constexpr static size_t Size = sizeof...(LhsI) + sizeof...(RhsI);
+    constexpr static auto Size = sizeof...(LhsI) + sizeof...(RhsI);
     constexpr static const char Partial[Size] = {Str[LhsI]..., Sym::Name[RhsI]... };
-    constexpr static const char * String = ConcatImpl<
+    constexpr static auto String = ConcatImpl<
         Partial, MakeISeq<Size>, MakeISeq<Strlen(Sym2::Name)>, Sym2, Syms...>::String;
 };
 
@@ -181,9 +181,8 @@ struct ConcatImpl<Str, ISeq<LhsI...>, ISeq<RhsI...>, Sym, Sym2, Syms...> {
 template<typename> struct Concat;
 template<typename S, typename ... Ss>
 struct Concat<List<S, Ss...>> {
-    constexpr static const char Dummy[1] = { '\0' };
-    constexpr static const char * String = ConcatImpl<
-        (const char*)Dummy, MakeISeq<0>, MakeISeq<Strlen(S::Name)>, S, Ss...>::String;
+    constexpr static auto String = ConcatImpl<
+        nullptr, MakeISeq<0>, MakeISeq<Strlen(S::Name)>, S, Ss...>::String;
 };
 
 template<size_t I, typename S, typename... Rs>
@@ -196,12 +195,7 @@ struct ProduceImpl
 template<typename S, typename ... Rs>
 struct Grammar {
     template<size_t I>
-    constexpr const char * produce() const {
-        return ProduceImpl<I, S, Rs...>::String;
-    }
-
-    template<size_t I>
-    static constexpr const char * Production = ProduceImpl<I, S, Rs...>::String;
+    static constexpr auto Production = ProduceImpl<I, S, Rs...>::String;
 };
 
 } // namespace CXGram
