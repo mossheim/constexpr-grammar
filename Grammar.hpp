@@ -9,7 +9,8 @@
 
 namespace CXGram {
 
-template<typename... Ts> struct Return {};
+// For debugging
+// template<typename... Ts> struct Return {};
 
 template<size_t... I> using ISeq = std::index_sequence<I...>;
 template<size_t N> using MakeISeq = std::make_index_sequence<N>;
