@@ -149,9 +149,6 @@ struct print<0> {
     void operator()(G const & grammar) {}
 };
 
-template<char C> struct checker {};
-checker<toy.produce<0>()[0]> c;
-
 int main() {
     std::cout << "toy:\n";
     // print<10>{}(toy);
