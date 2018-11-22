@@ -28,7 +28,7 @@ DEFINE_TERM(c, "c");
 DEFINE_TERM(d, "d");
 DEFINE_TERM(e, "e");
 
-constexpr Grammar<
+using Toy = Grammar<
     A,
     Rule<A, A, A>,
     Rule<A, A, B, C, D, E>,
@@ -42,7 +42,7 @@ constexpr Grammar<
     Rule<D, d>,
     Rule<D, B, E>,
     Rule<E, e>
-> toy{};
+>;
 
 DEFINE_NONTERM(Expr, "E");
 DEFINE_NONTERM(Term, "T");
@@ -70,42 +70,7 @@ DEFINE_TERM(n7, "7");
 DEFINE_TERM(n8, "8");
 DEFINE_TERM(n9, "9");
 
-constexpr Grammar<
-    Expr,
-
-    Rule<Expr, Term>,
-    Rule<Expr, Term>,
-    Rule<Expr, Term>,
-    Rule<Expr, Expr, Plus, Term>,
-    Rule<Expr, Expr, Minus, Term>,
-
-    Rule<Term, Factor>,
-    Rule<Term, Factor>,
-    Rule<Term, Factor>,
-    Rule<Term, Term, Times, Factor>,
-    Rule<Term, Term, Div, Factor>,
-
-    Rule<Factor, Digits>,
-    Rule<Factor, Digits>,
-    Rule<Factor, Digits>,
-    Rule<Factor, LParen, Expr, RParen>,
-
-    Rule<Digits, Digit>,
-    Rule<Digits, Digits, Digit>,
-
-    Rule<Digit, n0>,
-    Rule<Digit, n1>,
-    Rule<Digit, n2>,
-    Rule<Digit, n3>,
-    Rule<Digit, n4>,
-    Rule<Digit, n5>,
-    Rule<Digit, n6>,
-    Rule<Digit, n7>,
-    Rule<Digit, n8>,
-    Rule<Digit, n9>
-> math{};
-
-constexpr Grammar<
+using WeightedMath = Grammar<
     Expr,
 
     WRule<6, Expr, Term>,
@@ -132,27 +97,20 @@ constexpr Grammar<
     WRule<0, Digit, n7>,
     WRule<1, Digit, n8>,
     WRule<1, Digit, n9>
-> weighted_math{};
+>;
 
-template<int I>
-struct print {
-    template<typename G>
-    void operator()(G const & grammar) {
-        print<I - 1>{}(grammar);
-        std::cout << I << ": " << G::template Production<I> << '\n';
-    }
-};
+template<typename G, size_t I>
+void print() {
+    if constexpr (I > 1)
+        print<G, I - 1>();
 
-template<>
-struct print<0> {
-    template<typename G>
-    void operator()(G const & grammar) {}
-};
+    std::cout << I << ": " << G::template Production<I> << '\n';
+}
 
 int main() {
     std::cout << "toy:\n";
-    // print<10>{}(toy);
+    print<Toy, 5>();
 
     std::cout << "math:\n";
-    print<15>{}(weighted_math);
+    print<WeightedMath, 15>();
 }
