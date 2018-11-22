@@ -30,10 +30,8 @@ DEFINE_TERM(e, "e");
 
 using Toy = Grammar<
     A,
-    Rule<A, A, A>,
     Rule<A, A, B, C, D, E>,
     Rule<A, C, D, E>,
-    Rule<A, D, E>,
     Rule<B, b>,
     Rule<B, B, E, C>,
     Rule<C, c>,
