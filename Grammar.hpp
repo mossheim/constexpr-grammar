@@ -54,15 +54,19 @@ struct Select<I, List<Head, Tail...>> { using Result = typename Select<I - 1, Li
 template<typename Head, typename... Tail>
 struct Select<0, List<Head, Tail...>> { using Result = Head; };
 
-// Utility templates - WSelect, weighted select
-// We do need a base case because std::conditional_t will eventually recurse here
-template<size_t, typename> struct WSelect { using Result = void; };
+// Utility function - WSelect, weighted select
+template<size_t Idx, size_t WeightIdx, typename H, typename... Ts>
+constexpr size_t WSelectImpl() {
+    if constexpr (WeightIdx < H::Weight)
+        return Idx;
+    else
+        return WSelectImpl<Idx + 1, WeightIdx - H::Weight, Ts...>();
+}
 
-template<size_t I, typename Head, typename... Tail>
-struct WSelect<I, List<Head, Tail...>> {
-    using Result = std::conditional_t<I < Head::Weight,
-                                      Head,
-                                      typename WSelect<I - Head::Weight, List<Tail...>>::Result>;
+template<size_t, typename> struct WSelect;
+template<size_t I, typename... Ts>
+struct WSelect<I, List<Ts...>> {
+    using Result = typename Select<WSelectImpl<0, I, Ts...>(), List<Ts...>>::Result;
 };
 
 // Utility templates - WeightSum, sum of rule weights
